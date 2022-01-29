@@ -5,13 +5,20 @@ using UnityEngine.UI;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UNET;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 
 public class SessionController: MonoBehaviour
 {
-    public static SessionController singleton;
+    
+    [HideInInspector] public static SessionController singleton = null;
+    [HideInInspector] public UNetTransport connectionInfo = null;
 
-    private void Awake()
+    public TMP_InputField remoteAddressTMPInputField;
+    public TMP_InputField remotePortTMPInputField;
+
+
+    private void Start()
     {
         if(SessionController.singleton)
         {
@@ -23,17 +30,68 @@ public class SessionController: MonoBehaviour
             DontDestroyOnLoad(this.gameObject);
             Debug.Log("singleton created!");
         }
-        
+        connectionInfo = NetworkManager.Singleton.GetComponent<UNetTransport>();
+        if (!connectionInfo)
+        {
+            Debug.Log("Connection Info empty!");
+        }
    
     }
 
 
+
     public void ConnectBtn_OnClick()
     {
-        SceneManager.LoadScene("CharacterSelection");
+        int newPort = 0;
+
+        if (!int.TryParse(remotePortTMPInputField.text, out newPort))
+        {
+            Debug.Log("Invalid port error.");
+            return;
+        }
+        NetworkManager.Singleton.OnClientConnectedCallback += ConnectionSuccessful;
+        connectionInfo.ConnectAddress = remoteAddressTMPInputField.text;
+        remoteAddressTMPInputField.enabled = false;
+        remotePortTMPInputField.enabled = false;
+        
+
+
+        NetworkManager.Singleton.StartClient();
+ 
     }
+
+    public void ConnectionFail()
+    {
+
+    }
+
+    public void ConnectionSuccessful(ulong clientID)
+    {
+        NetworkManager.Singleton.SceneManager.LoadScene("CharacterSelection", LoadSceneMode.Single);
+        //SceneManager.LoadScene("CharacterSelection");
+        
+    }
+
     public void EnterGameBtn_OnClick()
     {
-        SceneManager.LoadScene("Level1");
+        NetworkManager.Singleton.SceneManager.LoadScene("Level1", LoadSceneMode.Single);
+    }
+
+    public void HostBtn_OnClick()
+    {
+        int newPort = 0;
+
+        if (!int.TryParse(remotePortTMPInputField.text, out newPort))
+        {
+            Debug.Log("Invalid port error:" + newPort);
+            return;
+        }
+        connectionInfo.ConnectPort = newPort;
+        connectionInfo.ServerListenPort = newPort;
+
+        //NetworkManager.ConnectionApprovedDelegate = 
+
+        NetworkManager.Singleton.StartHost();
+        NetworkManager.Singleton.SceneManager.LoadScene("CharacterSelection", LoadSceneMode.Single);
     }
 }
