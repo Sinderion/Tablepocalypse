@@ -27,6 +27,6 @@ public class GameController : MonoBehaviour
 
     public void ConnectBtn_OnClick()
     {
-        SceneManager.LoadScene("Level1");
+        SceneManager.LoadScene("CharacterSelection");
     }
 }
