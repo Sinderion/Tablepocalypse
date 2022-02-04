@@ -17,9 +17,13 @@ public class SessionController: MonoBehaviour
     public TMP_InputField remoteAddressTMPInputField;
     public TMP_InputField remotePortTMPInputField;
 
+    public GameObject loginUI;
+    public GameObject HUDUI;
+    public TMP_Text positionText;
 
     private void Start()
     {
+        HUDUI.SetActive(false);
         if(SessionController.singleton)
         {
             Destroy(this);
@@ -67,14 +71,19 @@ public class SessionController: MonoBehaviour
 
     public void ConnectionSuccessful(ulong clientID)
     {
-        NetworkManager.Singleton.SceneManager.LoadScene("CharacterSelection", LoadSceneMode.Single);
+
+        loginUI.SetActive(false);
+        HUDUI.SetActive(true);
+        //NetworkManager.Singleton.SceneManager.LoadScene("Level1", LoadSceneMode.Single);
         //SceneManager.LoadScene("CharacterSelection");
         
     }
 
     public void EnterGameBtn_OnClick()
     {
-        NetworkManager.Singleton.SceneManager.LoadScene("Level1", LoadSceneMode.Single);
+        loginUI.SetActive(false);
+        HUDUI.SetActive(true);
+        //NetworkManager.Singleton.SceneManager.LoadScene("Level1", LoadSceneMode.Single);
     }
 
     public void HostBtn_OnClick()
@@ -92,6 +101,10 @@ public class SessionController: MonoBehaviour
         //NetworkManager.ConnectionApprovedDelegate = 
 
         NetworkManager.Singleton.StartHost();
-        NetworkManager.Singleton.SceneManager.LoadScene("CharacterSelection", LoadSceneMode.Single);
+        loginUI.SetActive(false);
+        HUDUI.SetActive(true);
+        //NetworkManager.Singleton.SceneManager.LoadScene("Level1", LoadSceneMode.Single);
+
     }
+
 }
