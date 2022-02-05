@@ -9,6 +9,14 @@ public class NetworkCube : NetworkBehaviour
     NetworkVariable<Quaternion> networkRotation = new();
     //Rigidbody rb;
     Vector3 oldPosition;
+    Quaternion oldRotation;
+    public float networkMovePerSecond = 5;
+    //Vector3 cachedPosition = new();
+    float movementDelay = 0;
+    float movementWaiting = 0;
+    float fixedDeltaTime;
+
+
     private void Awake()
     {
         //rb = GetComponent<Rigidbody>();
@@ -16,19 +24,28 @@ public class NetworkCube : NetworkBehaviour
     void Start()
     {
         oldPosition = transform.position;
+        oldRotation = transform.rotation;
+
+        fixedDeltaTime = Time.fixedDeltaTime;
+        movementDelay = 1 / networkMovePerSecond;
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
-        if (IsClient && IsOwner)
+        movementWaiting += fixedDeltaTime;
+        if (movementWaiting < movementDelay)
         {
-            if (Vector3.Distance(oldPosition, transform.position) > 0)
+            
+            return;
+        }else if (Vector3.Distance(oldPosition, transform.position) > 0 || Quaternion.Angle(oldRotation, transform.rotation) > 0)
             {
+
                 MoveCubeServerRPC(transform.position, transform.rotation);
+            movementWaiting = 0;
             }
             
-        }
+        
         //rb.MovePosition(networkPosition.Value);
         
     }
@@ -38,10 +55,9 @@ public class NetworkCube : NetworkBehaviour
     {
         transform.position = networkPosition.Value;
         transform.rotation = networkRotation.Value;
-
     }
 
-    [ServerRpc]
+    [ServerRpc(RequireOwnership = false)]
     void MoveCubeServerRPC(Vector3 newPosition, Quaternion newRotation )
     {
         oldPosition = newPosition;
